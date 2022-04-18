@@ -271,7 +271,7 @@ class ObservationModel(nn.Module):
         hidden = F.relu(self.fc1(torch.cat([state, rnn_hidden], dim=1)))
         hidden = F.relu(self.fc2(hidden))
         hidden = F.relu(self.fc3(hidden))
-        obs = F.softmax(self.fc4(hidden))
+        obs = F.sigmoid(self.fc4(hidden))
         return obs
 
 class RewardModel(nn.Module):

@@ -260,7 +260,7 @@ for episode in range(seed_episodes, all_episodes):
         reward_loss = 0.5 * F.mse_loss(predicted_rewards, rewards[:-1])
 
         # 以上のロスを合わせて勾配降下で更新する
-        model_loss = kl_loss + obs_loss*6000 + reward_loss
+        model_loss = kl_loss + obs_loss + reward_loss
         model_optimizer.zero_grad()
         model_loss.backward()
         clip_grad_norm_(model_params, clip_grad_norm)
