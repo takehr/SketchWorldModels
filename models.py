@@ -24,7 +24,6 @@ class Rasterizer(nn.Module):
     self.renderer.load_state_dict(torch.load("params.pkl"))
     self.renderer.to(device)
   def forward(self, figures):
-#    return [ (self.sum_imgs(self.renderer(control_points)) for control_points in figure ) for figure in figures]
     return self.sum_imgs(self.renderer(figures.view(-1, self.num_control_points*2)).view(-1, self.num_strokes, 3, 224, 224))
   def sum_imgs(self, imgs):
     return 1 - torch.sigmoid( (torch.sum(1-imgs, dim=1) - 0.5) * 10)
@@ -74,9 +73,10 @@ class NeuralRenderer(nn.Module):
         return x
 
 class CLIP(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(CLIP, self).__init__()
-        self.model, clip_preprocess = clip.load("RN101", "cuda", jit=False)
+        self.device = device
+        self.model, clip_preprocess = clip.load("RN101", self.device, jit=False)
         self.visual_model = self.model.visual
         layers = list(self.model.visual.children())
         init_layers = torch.nn.Sequential(*layers)[:8]
@@ -95,7 +95,7 @@ class CLIP(torch.nn.Module):
         self.model.eval()
 
     def forward(self, sketch):
-        x = sketch.to("cuda")
+        x = sketch.to(self.device)
         x = self.normalize_transform(x).unsqueeze(0).contiguous()
         def stem(m, x):
             for conv, bn in [(m.conv1, m.bn1), (m.conv2, m.bn2), (m.conv3, m.bn3)]:
@@ -112,9 +112,10 @@ class CLIP(torch.nn.Module):
         return y/torch.norm(y), [x2, x3]
 
 class CLIPConvLoss(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(CLIPConvLoss, self).__init__()
-        self.model, clip_preprocess = clip.load("RN101", "cuda", jit=False)
+        self.device = device
+        self.model, clip_preprocess = clip.load("RN101", self.device, jit=False)
 
         self.visual_model = self.model.visual
         layers = list(self.model.visual.children())
@@ -147,8 +148,8 @@ class CLIPConvLoss(torch.nn.Module):
         self.augment_trans = transforms.Compose(augemntations)
 
     def forward(self, sketch, target):
-        x = sketch.to("cuda")
-        y = target.to("cuda")
+        x = sketch.to(self.device)
+        y = target.to(self.device)
         sketch_augs, img_augs = [self.normalize_transform(x)], [
             self.normalize_transform(y)]
     
@@ -157,8 +158,8 @@ class CLIPConvLoss(torch.nn.Module):
             sketch_augs.append(augmented_pair[0].unsqueeze(0))
             img_augs.append(augmented_pair[1].unsqueeze(0))
 
-        xs = torch.cat(sketch_augs, dim=0).to("cuda")
-        ys = torch.cat(img_augs, dim=0).to("cuda")
+        xs = torch.cat(sketch_augs, dim=0).to(self.device)
+        ys = torch.cat(img_augs, dim=0).to(self.device)
 
         xs_fc_features, xs_conv_features = self.forward_inspection_clip_resnet(
             xs.contiguous())
@@ -293,6 +294,7 @@ class RewardModel(nn.Module):
         hidden = self.act(self.fc3(hidden))
         reward = self.fc4(hidden)
         return reward
+
 class RSSM:
     def __init__(self, state_dim, action_dim, rnn_hidden_dim,  device, num_strokes=8, num_control_points=4,):
         self.transition = TransitionModel(state_dim, action_dim, rnn_hidden_dim).to(device)

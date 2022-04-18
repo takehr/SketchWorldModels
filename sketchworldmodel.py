@@ -38,7 +38,6 @@ parser.add_argument("--eps", type=float, default=1e-4,
                     help="eps of optimizer")
 args = parser.parse_args()
 
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def preprocess_obs(obs):
@@ -124,8 +123,7 @@ num_control_points = args.num_control_points
 num_strokes = args.num_strokes
 encoder = Encoder().to(device)#確率的状態の次元と決定的状態（RNNの隠れ状態）の次元は一致しなくて良い
 rasterizer = Rasterizer(num_control_points, num_strokes, device)
-clip = CLIP()
-clip_loss = CLIPConvLoss()
+clip_loss = CLIPConvLoss(device)
 rssm = RSSM(state_dim,env.action_space.shape[0],rnn_hidden_dim, device, num_strokes, num_control_points)
 value_model = ValueModel(state_dim, rnn_hidden_dim).to(device)
 action_model = ActionModel(state_dim, rnn_hidden_dim,
