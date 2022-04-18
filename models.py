@@ -264,12 +264,14 @@ class ObservationModel(nn.Module):
         super(ObservationModel, self).__init__()
         self.fc1 = nn.Linear(state_dim + rnn_hidden_dim, 512)
         self.fc2 = nn.Linear(512, 512)
-        self.fc3 = nn.Linear(512, num_strokes*num_control_points*2)
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, num_strokes*num_control_points*2)
 
     def forward(self, state, rnn_hidden):
         hidden = F.relu(self.fc1(torch.cat([state, rnn_hidden], dim=1)))
         hidden = F.relu(self.fc2(hidden))
-        obs = F.softmax(self.fc3(hidden))
+        hidden = F.relu(self.fc3(hidden))
+        obs = F.softmax(self.fc4(hidden))
         return obs
 
 class RewardModel(nn.Module):
