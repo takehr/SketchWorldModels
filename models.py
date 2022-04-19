@@ -23,6 +23,7 @@ class Rasterizer(nn.Module):
     self.renderer = NeuralRenderer(self.num_control_points)
     self.renderer.load_state_dict(torch.load("params.pkl"))
     self.renderer.to(device)
+    self.renderer.eval()
   def forward(self, figures):
     return self.sum_imgs(self.renderer(figures.view(-1, self.num_control_points*2)).view(-1, self.num_strokes, 3, 224, 224))
   def sum_imgs(self, imgs):
