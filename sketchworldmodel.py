@@ -254,7 +254,7 @@ for episode in range(seed_episodes, all_episodes):
         predicted_rewards = rssm.reward(flatten_states, flatten_rnn_hiddens).view(chunk_length-1, batch_size, 1)
 
         # 観測と報酬の予測誤差を計算
-        obs_loss = 0.5 * clip_loss(recon_observations.view(-1, 3, 224, 224), observations.view(-1, 3, 224, 224)[batch_size:])
+        obs_loss = 0.5 * 10 * clip_loss(recon_observations.view(-1, 3, 224, 224), observations.view(-1, 3, 224, 224)[batch_size:])
         reward_loss = 0.5 * F.mse_loss(predicted_rewards, rewards[:-1])
 
         # 以上のロスを合わせて勾配降下で更新する
