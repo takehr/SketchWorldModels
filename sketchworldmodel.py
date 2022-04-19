@@ -14,6 +14,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--all_episodes", type=int, default=100,
+                    help="episodes")
 parser.add_argument("--buffer_capacity", type=int, default=200000//4,
                     help="capacity of replay buffer")
 parser.add_argument("--num_strokes", type=int, default=8,
@@ -143,7 +145,7 @@ action_optimizer = torch.optim.Adam(action_model.parameters(), lr=action_lr, eps
 
 # その他ハイパーパラメータ
 seed_episodes = 5  # 最初にランダム行動で探索するエピソード数
-all_episodes = 100  # 学習全体のエピソード数（300ほどで, ある程度収束します）
+all_episodes = args.all_episodes  # 学習全体のエピソード数（300ほどで, ある程度収束します）
 test_interval = 10  # 何エピソードごとに探索ノイズなしのテストを行うか
 model_save_interval = 20  # NNの重みを何エピソードごとに保存するか
 collect_interval = 100  # 何回のNNの更新ごとに経験を集めるか（＝1エピソード経験を集めるごとに何回更新するか）
