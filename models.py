@@ -22,7 +22,7 @@ class Rasterizer(nn.Module):
     self.num_strokes = num_strokes
     self.fc = nn.Linear(num_strokes*num_control_points*2, 3*224*224)
   def forward(self, figures):
-    return self.fc(figures.view(-1, self.num_storokes*self.num_control_points*2)).view(-1, 3, 224, 224)
+    return self.fc(figures.view(-1, self.num_strokes*self.num_control_points*2)).view(-1, 3, 224, 224)
 
 #class Rasterizer(nn.Module):
 #  """
