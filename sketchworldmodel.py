@@ -256,7 +256,7 @@ for episode in range(seed_episodes, all_episodes):
         predicted_rewards = rssm.reward(flatten_states, flatten_rnn_hiddens).view(chunk_length-1, batch_size, 1)
 
         # 観測と報酬の予測誤差を計算
-        obs_loss = 0.5 * 10 * clip_loss(recon_observations.view(-1, 3, 224, 224), observations.view(-1, 3, 224, 224)[batch_size:])
+        obs_loss = 0.5 * 10 * F.mse_loss(recon_observations.view(-1, 3, 224, 224), observations.view(-1, 3, 224, 224)[batch_size:])#clip_loss(recon_observations.view(-1, 3, 224, 224), observations.view(-1, 3, 224, 224)[batch_size:])
         reward_loss = 0.5 * F.mse_loss(predicted_rewards, rewards[:-1])
 
         # 以上のロスを合わせて勾配降下で更新する
@@ -320,7 +320,7 @@ for episode in range(seed_episodes, all_episodes):
         clip_grad_norm_(action_model.parameters(), clip_grad_norm)
         action_optimizer.step()
         # TD(λ)ベースの目的関数で価値関数を更新（価値関数のみを学習するため，学習しない変数のグラフは切っている. )
-        imaginated_values = value_model(flatten_imaginated_states.detach(), flatten_imaginated_rnn_hiddens.detach()).view(imagination_horizon + 1, -1)        
+        imaginated_values = value_model(flatten_imaginated_states.detach(), flatten_imaginated_rnn_hiddens.detach()).view(imagination_horizon + 1, -1)
         value_loss = 0.5 * F.mse_loss(imaginated_values, lambda_target_values.detach())
         value_optimizer.zero_grad()
         value_loss.backward()
