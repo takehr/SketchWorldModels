@@ -20,16 +20,28 @@ class Rasterizer(nn.Module):
     super(Rasterizer, self).__init__()
     self.num_control_points = num_control_points
     self.num_strokes = num_strokes
-    self.renderer = NeuralRenderer(self.num_control_points)
-    self.renderer.load_state_dict(torch.load("params.pkl"))
-    self.renderer.to(device)
-    self.renderer.eval()
+    self.fc = nn.Linear(num_strokes*num_control_points*2, 3*224*224)
   def forward(self, figures):
-    return self.sum_imgs(self.renderer(figures.view(-1, self.num_control_points*2)).view(-1, self.num_strokes, 3, 224, 224))
-  def sum_imgs(self, imgs):
-    return 1 - torch.sigmoid( (torch.sum(1-imgs, dim=1) - 0.5) * 10)
-  def zero_grad(self):
-    self.renderer.zero_grad()
+    return self.fc(figures.view(-1, self.num_storokes*self.num_control_points*2)).view(-1, 3, 224, 224)
+
+#class Rasterizer(nn.Module):
+#  """
+#  (N, num_strokes, num_control_points*2) -> (N, 3, 224, 224)
+#  """
+#  def __init__(self, num_control_points, num_strokes, device):
+#    super(Rasterizer, self).__init__()
+#    self.num_control_points = num_control_points
+#    self.num_strokes = num_strokes
+#    self.renderer = NeuralRenderer(self.num_control_points)
+#    self.renderer.load_state_dict(torch.load("params.pkl"))
+#    self.renderer.to(device)
+#    self.renderer.eval()
+#  def forward(self, figures):
+#    return self.sum_imgs(self.renderer(figures.view(-1, self.num_control_points*2)).view(-1, self.num_strokes, 3, 224, 224))
+#  def sum_imgs(self, imgs):
+#    return 1 - torch.sigmoid( (torch.sum(1-imgs, dim=1) - 0.5) * 10)
+#  def zero_grad(self):
+#    self.renderer.zero_grad()
 
 class NeuralRenderer(nn.Module):
     """
